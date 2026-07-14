@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -41,7 +41,7 @@ export function CreateQuotationScreen({ navigation, route }: Props) {
   const [pdfFile, setPdfFile] = useState<StagedPdfFile | null>(null);
   const [pdfError, setPdfError] = useState<string | undefined>(undefined);
 
-  const { control, handleSubmit, setValue } = useForm<QuotationFormValues>({
+  const { control, handleSubmit, setValue, reset } = useForm<QuotationFormValues>({
     resolver: zodResolver(quotationSchema),
     // `amount`/`gst` are zod-coerced numbers, but the field only ever renders a string —
     // seed them as strings here so the default actually shows up, not just the placeholder.
@@ -112,6 +112,9 @@ export function CreateQuotationScreen({ navigation, route }: Props) {
   const handleSaveDraft = handleSubmit(async (values) => {
     try {
       const quotation = await createAndUpload(values);
+      reset();
+      setPdfFile(null);
+      setSelectedVendor(null);
       navigation.replace('QuotationDetails', { quotationId: quotation.id });
     } catch (error) {
       Alert.alert('Could Not Save Quotation', getErrorMessage(error));
@@ -128,6 +131,9 @@ export function CreateQuotationScreen({ navigation, route }: Props) {
     try {
       const quotation = await createAndUpload(values);
       await submitQuotation(quotation.id).unwrap();
+      reset();
+      setPdfFile(null);
+      setSelectedVendor(null);
       navigation.replace('QuotationDetails', { quotationId: quotation.id });
     } catch (error) {
       Alert.alert('Could Not Submit Quotation', getErrorMessage(error));
@@ -139,47 +145,52 @@ export function CreateQuotationScreen({ navigation, route }: Props) {
   return (
     <Screen padded={false}>
       <AppHeader title="Create Quotation" leftIcon="arrow-back" onLeftPress={() => navigation.goBack()} />
-      <ScrollView
-        className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
-        contentContainerStyle={{ paddingBottom: 24 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        {!department ? (
-          <Text className="mb-3 text-sm text-red-600 dark:text-red-400">
-            Your account has no department assigned — contact your Super Admin before creating a quotation.
-          </Text>
-        ) : null}
+        <ScrollView
+          className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
+          contentContainerStyle={{ paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {!department ? (
+            <Text className="mb-3 text-sm text-red-600 dark:text-red-400">
+              Your account has no department assigned — contact your Super Admin before creating a quotation.
+            </Text>
+          ) : null}
 
-        <QuotationForm
-          control={control}
-          departmentName={department?.name ?? 'No department'}
-          selectedVendor={selectedVendor ? { id: selectedVendor.id, name: selectedVendor.name, code: selectedVendor.code } : null}
-          onChangeVendor={() => setIsPickerVisible(true)}
-          pdfSection={
-            <QuotationPdfUploadCard
-              value={pdfFile}
-              onChange={(file) => {
-                setPdfFile(file);
-                if (file) setPdfError(undefined);
-              }}
-              errorMessage={pdfError}
-            />
-          }
-        />
-      </ScrollView>
+          <QuotationForm
+            control={control}
+            departmentName={department?.name ?? 'No department'}
+            selectedVendor={selectedVendor ? { id: selectedVendor.id, name: selectedVendor.name, code: selectedVendor.code } : null}
+            onChangeVendor={() => setIsPickerVisible(true)}
+            pdfSection={
+              <QuotationPdfUploadCard
+                value={pdfFile}
+                onChange={(file) => {
+                  setPdfFile(file);
+                  if (file) setPdfError(undefined);
+                }}
+                errorMessage={pdfError}
+              />
+            }
+          />
+        </ScrollView>
 
-      {/* Sticky footer — kept outside the ScrollView so it stays pinned regardless of scroll position. */}
-      <View className="border-t border-slate-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
-        <Button label="Save as Draft" loading={isSavingDraft || isUploadingPdf} disabled={isSaving} onPress={handleSaveDraft} />
-        <Button
-          label="Submit to Director"
-          variant="secondary"
-          loading={isSubmitting || isUploadingPdf}
-          disabled={isSaving}
-          onPress={handleSubmitToDirector}
-          className="mt-3"
-        />
-      </View>
+        {/* Sticky footer — kept outside the ScrollView so it stays pinned regardless of scroll position. */}
+        <View className="border-t border-slate-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+          <Button label="Save as Draft" loading={isSavingDraft || isUploadingPdf} disabled={isSaving} onPress={handleSaveDraft} />
+          <Button
+            label="Submit to Director"
+            variant="secondary"
+            loading={isSubmitting || isUploadingPdf}
+            disabled={isSaving}
+            onPress={handleSubmitToDirector}
+            className="mt-3"
+          />
+        </View>
+      </KeyboardAvoidingView>
 
       <VendorPickerSheet
         visible={isPickerVisible}

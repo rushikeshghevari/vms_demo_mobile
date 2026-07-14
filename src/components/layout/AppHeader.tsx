@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
 
 import { BrandLogo } from '@/components/branding/BrandLogo';
+import { useTheme } from '@/providers/ThemeProvider';
 
 interface AppHeaderProps {
   /** `solid` is the primary-blue bar used by Profile/ComingSoon. `brand` is the light, logo-centered bar used by the Dashboard. */
@@ -23,18 +25,36 @@ export function AppHeader({
   leftAccessibilityLabel,
   rightSlot,
 }: AppHeaderProps) {
+  const navigation = useNavigation();
+  const { scheme } = useTheme();
+
+  const canGoBack = navigation ? navigation.canGoBack() : false;
+  const hasDrawer = navigation ? typeof (navigation as any).openDrawer === 'function' : false;
+
+  const defaultIcon = canGoBack ? 'arrow-back' : (hasDrawer ? 'menu' : undefined);
+  const defaultPress = canGoBack 
+    ? () => navigation.goBack() 
+    : (hasDrawer ? () => navigation.dispatch(DrawerActions.toggleDrawer()) : undefined);
+
+  const resolvedIcon = leftIcon ?? defaultIcon;
+  const resolvedPress = onLeftPress ?? defaultPress;
+
   if (variant === 'brand') {
     return (
       <View className="flex-row items-center justify-between bg-white px-4 py-3 dark:bg-surface-dark">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={leftAccessibilityLabel ?? 'Open menu'}
-          onPress={onLeftPress}
-          hitSlop={8}
-          className="h-9 w-9 items-center justify-center"
-        >
-          <Ionicons name={leftIcon ?? 'menu-outline'} size={26} color="#212121" />
-        </Pressable>
+        {resolvedIcon ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={leftAccessibilityLabel ?? 'Navigation control'}
+            onPress={resolvedPress}
+            hitSlop={8}
+            className="h-9 w-9 items-center justify-center"
+          >
+            <Ionicons name={resolvedIcon} size={26} color={scheme === 'dark' ? '#ffffff' : '#212121'} />
+          </Pressable>
+        ) : (
+          <View style={{ width: 36 }} />
+        )}
 
         <BrandLogo size="sm" />
 
@@ -48,15 +68,15 @@ export function AppHeader({
   return (
     <View className="flex-row items-center justify-between bg-primary-600 px-4 py-4">
       <View className="w-10">
-        {leftIcon ? (
+        {resolvedIcon ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={leftAccessibilityLabel ?? title}
-            onPress={onLeftPress}
+            onPress={resolvedPress}
             hitSlop={8}
             className="h-9 w-9 items-center justify-center"
           >
-            <Ionicons name={leftIcon} size={24} color="#ffffff" />
+            <Ionicons name={resolvedIcon} size={24} color="#ffffff" />
           </Pressable>
         ) : null}
       </View>

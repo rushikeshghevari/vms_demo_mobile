@@ -2,11 +2,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller } from 'react-hook-form';
 import { Text, View } from 'react-native';
+import { useMemo } from 'react';
 
 import { ChipSelect } from '@/components/users/ChipSelect';
 import { Button } from '@/components/ui/Button';
 import { FormTextField } from '@/components/ui/FormTextField';
 import { TextField } from '@/components/ui/TextField';
+import { FormSearchableDropdown } from '@/components/ui/FormSearchableDropdown';
+import { GEOGRAPHY_DATA } from '@/constants/locations';
 import { vendorSchema, type VendorFormValues } from '@/features/vendors/vendorSchema';
 
 const CATEGORY_OPTIONS = [
@@ -43,7 +46,24 @@ export function VendorForm({
   onSubmit,
   onCancel,
 }: VendorFormProps) {
-  const { control, handleSubmit } = useForm<VendorFormValues>({
+  // Parse taluka from address if editing
+  const parsedDefaultValues = useMemo(() => {
+    if (!defaultValues) return undefined;
+    let initialTaluka = '';
+    let initialAddress = defaultValues.address ?? '';
+    if (initialAddress.includes(', Taluka: ')) {
+      const parts = initialAddress.split(', Taluka: ');
+      initialAddress = parts[0] || '';
+      initialTaluka = parts[1] ?? '';
+    }
+    return {
+      ...defaultValues,
+      address: initialAddress,
+      taluka: initialTaluka,
+    };
+  }, [defaultValues]);
+
+  const { control, handleSubmit, setValue, watch } = useForm<VendorFormValues>({
     resolver: zodResolver(vendorSchema),
     defaultValues: {
       name: '',
@@ -56,6 +76,7 @@ export function VendorForm({
       state: '',
       district: '',
       city: '',
+      taluka: '',
       pincode: '',
       bankName: '',
       accountHolderName: '',
@@ -64,9 +85,61 @@ export function VendorForm({
       upiId: '',
       category: 'Pharmaceutical',
       status: 'active',
-      ...defaultValues,
+      ...parsedDefaultValues,
     },
   });
+
+  const selectedState = watch('state');
+  const selectedDistrict = watch('district');
+  const selectedCity = watch('city');
+
+  const stateOptions = useMemo(() => {
+    return GEOGRAPHY_DATA.map((s) => ({ value: s.name, label: s.name }));
+  }, []);
+
+  const districtOptions = useMemo(() => {
+    if (!selectedState) return [];
+    const stateObj = GEOGRAPHY_DATA.find((s) => s.name === selectedState);
+    return stateObj ? stateObj.districts.map((d) => ({ value: d.name, label: d.name })) : [];
+  }, [selectedState]);
+
+  const cityOptions = useMemo(() => {
+    if (!selectedState || !selectedDistrict) return [];
+    const stateObj = GEOGRAPHY_DATA.find((s) => s.name === selectedState);
+    const distObj = stateObj?.districts.find((d) => d.name === selectedDistrict);
+    return distObj ? distObj.cities.map((c) => ({ value: c.name, label: c.name })) : [];
+  }, [selectedState, selectedDistrict]);
+
+  const talukaOptions = useMemo(() => {
+    if (!selectedState || !selectedDistrict || !selectedCity) return [];
+    const stateObj = GEOGRAPHY_DATA.find((s) => s.name === selectedState);
+    const distObj = stateObj?.districts.find((d) => d.name === selectedDistrict);
+    const cityObj = distObj?.cities.find((c) => c.name === selectedCity);
+    return cityObj?.talukas ? cityObj.talukas.map((t) => ({ value: t, label: t })) : [];
+  }, [selectedState, selectedDistrict, selectedCity]);
+
+  const handleStateChange = () => {
+    setValue('district', '');
+    setValue('city', '');
+    setValue('taluka', '');
+  };
+
+  const handleDistrictChange = () => {
+    setValue('city', '');
+    setValue('taluka', '');
+  };
+
+  const handleCityChange = () => {
+    setValue('taluka', '');
+  };
+
+  const handleFormSubmit = (values: VendorFormValues) => {
+    const finalAddress = values.taluka ? `${values.address}, Taluka: ${values.taluka}` : values.address;
+    onSubmit({
+      ...values,
+      address: finalAddress,
+    });
+  };
 
   return (
     <View>
@@ -88,9 +161,45 @@ export function VendorForm({
       <FormTextField control={control} name="panNumber" label="PAN Number (optional)" placeholder="e.g. AAACM1234A" autoCapitalize="characters" />
 
       <FormTextField control={control} name="address" label="Address" placeholder="Street / area" multiline numberOfLines={2} className="h-16" />
-      <FormTextField control={control} name="state" label="State" placeholder="e.g. Maharashtra" autoCapitalize="words" />
-      <FormTextField control={control} name="district" label="District" placeholder="e.g. Pune" autoCapitalize="words" />
-      <FormTextField control={control} name="city" label="City" placeholder="e.g. Pune" autoCapitalize="words" />
+      
+      <FormSearchableDropdown
+        control={control}
+        name="state"
+        label="State"
+        placeholder="Select State"
+        options={stateOptions}
+        onValueChange={handleStateChange}
+      />
+      
+      <FormSearchableDropdown
+        control={control}
+        name="district"
+        label="District"
+        placeholder="Select District"
+        options={districtOptions}
+        disabled={!selectedState}
+        onValueChange={handleDistrictChange}
+      />
+
+      <FormSearchableDropdown
+        control={control}
+        name="city"
+        label="City"
+        placeholder="Select City"
+        options={cityOptions}
+        disabled={!selectedDistrict}
+        onValueChange={handleCityChange}
+      />
+
+      <FormSearchableDropdown
+        control={control}
+        name="taluka"
+        label="Taluka (optional)"
+        placeholder="Select Taluka"
+        options={talukaOptions}
+        disabled={!selectedCity}
+      />
+
       <FormTextField control={control} name="pincode" label="Pincode" placeholder="6-digit pincode" keyboardType="number-pad" />
 
       <FormTextField control={control} name="bankName" label="Bank Name" placeholder="e.g. HDFC Bank" autoCapitalize="words" />
@@ -115,8 +224,9 @@ export function VendorForm({
         )}
       />
 
-      <Button label={submitLabel} loading={isSubmitting} onPress={handleSubmit(onSubmit)} className="mt-2" />
+      <Button label={submitLabel} loading={isSubmitting} onPress={handleSubmit(handleFormSubmit)} className="mt-2" />
       <Button label="Cancel" variant="secondary" onPress={onCancel} className="mt-3" />
     </View>
   );
 }
+

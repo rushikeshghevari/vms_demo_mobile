@@ -17,6 +17,23 @@ const PRIORITY_OPTIONS = QUOTATION_PRIORITIES.map((value) => ({
   label: value.charAt(0).toUpperCase() + value.slice(1),
 }));
 
+import { FormSearchableDropdown } from '@/components/ui/FormSearchableDropdown';
+
+const PAYMENT_TERMS_OPTIONS = [
+  { value: 'Net 30', label: 'Net 30' },
+  { value: 'Net 45', label: 'Net 45' },
+  { value: 'Net 60', label: 'Net 60' },
+  { value: 'Immediate Payment', label: 'Immediate Payment' },
+  { value: '50% Advance / 50% Delivery', label: '50% Advance / 50% Delivery' },
+];
+
+const DELIVERY_TERMS_OPTIONS = [
+  { value: 'Immediate Delivery', label: 'Immediate Delivery' },
+  { value: 'Within 1 Week', label: 'Within 1 Week' },
+  { value: 'Within 2 Weeks', label: 'Within 2 Weeks' },
+  { value: 'Within 1 Month', label: 'Within 1 Month' },
+];
+
 const READ_ONLY_FIELD_CLASS = 'bg-slate-100 text-ink-muted dark:bg-slate-800';
 
 interface SelectedVendor {
@@ -101,9 +118,20 @@ export function QuotationForm({ control, quotationCode, departmentName, selected
       </DashboardCard>
 
       <DashboardCard className="mb-4">
-        <SectionTitle>Terms</SectionTitle>
-        <FormTextField control={control} name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
-        <FormTextField control={control} name="deliveryTerms" label="Delivery Terms" placeholder="e.g. Within 2 weeks" />
+        <FormSearchableDropdown
+          control={control}
+          name="paymentTerms"
+          label="Payment Terms"
+          placeholder="Select Payment Terms"
+          options={PAYMENT_TERMS_OPTIONS}
+        />
+        <FormSearchableDropdown
+          control={control}
+          name="deliveryTerms"
+          label="Delivery Terms"
+          placeholder="Select Delivery Terms"
+          options={DELIVERY_TERMS_OPTIONS}
+        />
         <Controller
           control={control}
           name="priority"

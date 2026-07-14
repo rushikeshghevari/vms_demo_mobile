@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { QuotationForm } from '@/components/quotations/QuotationForm';
@@ -170,51 +170,56 @@ export function EditQuotationScreen({ navigation, route }: Props) {
   return (
     <Screen padded={false}>
       <AppHeader title="Edit Quotation" leftIcon="arrow-back" onLeftPress={() => navigation.goBack()} />
-      <ScrollView
-        className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
-        contentContainerStyle={{ paddingBottom: 24 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        {isNegotiation && quotation.directorRemarks ? (
-          <DashboardCard className="mb-4 border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
-            <Text className="text-xs font-semibold text-amber-700 dark:text-amber-400">Director's Remarks</Text>
-            <Text className="mt-1 text-sm text-amber-900 dark:text-amber-200">{quotation.directorRemarks}</Text>
-          </DashboardCard>
-        ) : null}
+        <ScrollView
+          className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
+          contentContainerStyle={{ paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {isNegotiation && quotation.directorRemarks ? (
+            <DashboardCard className="mb-4 border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
+              <Text className="text-xs font-semibold text-amber-700 dark:text-amber-400">Director's Remarks</Text>
+              <Text className="mt-1 text-sm text-amber-900 dark:text-amber-200">{quotation.directorRemarks}</Text>
+            </DashboardCard>
+          ) : null}
 
-        <QuotationForm
-          control={control}
-          quotationCode={quotation.quotationCode}
-          departmentName={quotation.departmentName}
-          selectedVendor={selectedVendor}
-          onChangeVendor={() => setIsPickerVisible(true)}
-          pdfSection={
-            <QuotationPdfUploadCard
-              value={pdfFile}
-              onChange={(file) => {
-                setPdfFile(file);
-                if (file) setPdfError(undefined);
-              }}
-              errorMessage={pdfError}
-              existingFileName={quotation.pdfFiles[quotation.pdfFiles.length - 1]?.fileName}
-              existingVersionCount={quotation.pdfFiles.length}
-            />
-          }
-        />
-      </ScrollView>
+          <QuotationForm
+            control={control}
+            quotationCode={quotation.quotationCode}
+            departmentName={quotation.departmentName}
+            selectedVendor={selectedVendor}
+            onChangeVendor={() => setIsPickerVisible(true)}
+            pdfSection={
+              <QuotationPdfUploadCard
+                value={pdfFile}
+                onChange={(file) => {
+                  setPdfFile(file);
+                  if (file) setPdfError(undefined);
+                }}
+                errorMessage={pdfError}
+                existingFileName={quotation.pdfFiles[quotation.pdfFiles.length - 1]?.fileName}
+                existingVersionCount={quotation.pdfFiles.length}
+              />
+            }
+          />
+        </ScrollView>
 
-      {/* Sticky footer — kept outside the ScrollView so it stays pinned regardless of scroll position. */}
-      <View className="border-t border-slate-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
-        <Button label="Save Changes" loading={isSaveBusy} disabled={isSaveBusy || isSubmitBusy} onPress={handleSave} />
-        <Button
-          label={isNegotiation ? 'Resubmit' : 'Submit to Director'}
-          variant="secondary"
-          loading={isSubmitBusy}
-          disabled={isSaveBusy || isSubmitBusy}
-          onPress={handleSubmitOrResubmit}
-          className="mt-3"
-        />
-      </View>
+        {/* Sticky footer — kept outside the ScrollView so it stays pinned regardless of scroll position. */}
+        <View className="border-t border-slate-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+          <Button label="Save Changes" loading={isSaveBusy} disabled={isSaveBusy || isSubmitBusy} onPress={handleSave} />
+          <Button
+            label={isNegotiation ? 'Resubmit' : 'Submit to Director'}
+            variant="secondary"
+            loading={isSubmitBusy}
+            disabled={isSaveBusy || isSubmitBusy}
+            onPress={handleSubmitOrResubmit}
+            className="mt-3"
+          />
+        </View>
+      </KeyboardAvoidingView>
 
       <VendorPickerSheet
         visible={isPickerVisible}

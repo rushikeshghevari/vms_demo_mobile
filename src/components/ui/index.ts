@@ -15,3 +15,5 @@ export { Fab } from '@/components/ui/Fab';
 export { Pagination } from '@/components/ui/Pagination';
 export { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 export { Skeleton } from '@/components/ui/Skeleton';
+export { FormSearchableDropdown } from '@/components/ui/FormSearchableDropdown';
+

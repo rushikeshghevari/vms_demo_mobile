@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Alert, ScrollView } from 'react-native';
+import { Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -181,17 +181,22 @@ export function PaymentFormScreen({ navigation, route }: Props) {
   return (
     <Screen padded={false}>
       <AppHeader title={titles[mode]} leftIcon="arrow-back" onLeftPress={() => navigation.goBack()} />
-      <ScrollView
-        className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
-        contentContainerStyle={{ paddingBottom: 32 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        {mode === 'start-processing' || mode === 'retry' ? (
-          <StartProcessingForm navigation={navigation} paymentId={paymentId} isRetry={mode === 'retry'} />
-        ) : null}
-        {mode === 'mark-paid' ? <MarkPaidForm navigation={navigation} paymentId={paymentId} paymentMethod={payment.paymentMethod} /> : null}
-        {mode === 'mark-failed' ? <MarkFailedForm navigation={navigation} paymentId={paymentId} /> : null}
-      </ScrollView>
+        <ScrollView
+          className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
+          contentContainerStyle={{ paddingBottom: 48 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {mode === 'start-processing' || mode === 'retry' ? (
+            <StartProcessingForm navigation={navigation} paymentId={paymentId} isRetry={mode === 'retry'} />
+          ) : null}
+          {mode === 'mark-paid' ? <MarkPaidForm navigation={navigation} paymentId={paymentId} paymentMethod={payment.paymentMethod} /> : null}
+          {mode === 'mark-failed' ? <MarkFailedForm navigation={navigation} paymentId={paymentId} /> : null}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

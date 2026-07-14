@@ -61,6 +61,13 @@ export interface ReviewBill {
   directorFinancialBy: RefSummary | string | null;
   directorFinancialAt: string | null;
   directorFinancialRemarks: string | null;
+  directorApprovals?: {
+    directorId: string;
+    directorName: string;
+    decision: 'pending' | 'approved' | 'rejected' | 'correction_required';
+    remarks?: string;
+    decidedAt: string | null;
+  }[];
 }
 
 export interface ReviewQuotation {

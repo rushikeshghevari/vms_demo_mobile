@@ -16,6 +16,7 @@ import { useUpdateUserMutation } from '@/features/users/api/usersApi';
 import { ROLES } from '@/constants/roles';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProfileStackParamList } from '@/navigation/types';
+import { useTheme } from '@/providers/ThemeProvider';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'ProfileHome'>;
 
@@ -29,11 +30,12 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 function InfoRow({ label, value }: { label: string; value: string }) {
+  const { colors } = useTheme();
   if (!value) return null;
   return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
+    <View style={[styles.infoRow, { borderTopColor: colors.border }]}>
+      <Text style={[styles.infoLabel, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={1}>{value}</Text>
     </View>
   );
 }
@@ -51,12 +53,15 @@ function MenuItem({
   danger?: boolean;
   chevron?: boolean;
 }) {
+  const { colors, scheme } = useTheme();
+  const iconBg = danger ? (scheme === 'dark' ? '#451a1a' : '#fef2f2') : (scheme === 'dark' ? '#172554' : '#eff6ff');
+
   return (
-    <Pressable onPress={onPress} style={styles.menuItem} accessibilityRole="button" accessibilityLabel={label}>
-      <View style={[styles.menuIconWrap, danger && styles.menuIconWrapDanger]}>
+    <Pressable onPress={onPress} style={[styles.menuItem, { borderTopColor: colors.border }]} accessibilityRole="button" accessibilityLabel={label}>
+      <View style={[styles.menuIconWrap, danger && styles.menuIconWrapDanger, { backgroundColor: iconBg }]}>
         <Ionicons name={icon} size={18} color={danger ? '#ef4444' : '#1e88e5'} />
       </View>
-      <Text style={[styles.menuLabel, danger && styles.menuLabelDanger]}>{label}</Text>
+      <Text style={[styles.menuLabel, danger && styles.menuLabelDanger, { color: colors.text }]}>{label}</Text>
       {chevron ? <Ionicons name="chevron-forward" size={16} color="#94a3b8" /> : null}
     </Pressable>
   );
@@ -68,6 +73,7 @@ export function ProfileScreen({ navigation }: Props) {
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
   const [updateUser, { isLoading: isUpdatingProfile }] = useUpdateUserMutation();
   const rootNavigation = useNavigation();
+  const { colors, scheme } = useTheme();
 
   const photoKey = user ? `profile_photo_${user.id}` : null;
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -210,13 +216,25 @@ export function ProfileScreen({ navigation }: Props) {
   const initials = (user?.name ?? 'U').charAt(0).toUpperCase();
   const roleLabel = (user && ROLE_LABELS[user.role]) ?? 'Team Member';
 
+  const themedStyles = {
+    profileCard: [styles.profileCard, { backgroundColor: colors.background, shadowColor: colors.border }],
+    profileName: [styles.profileName, { color: colors.text }],
+    profileEmail: [styles.profileEmail, { color: colors.textMuted }],
+    card: [styles.card, { backgroundColor: colors.background, shadowColor: colors.border }],
+    modalSheet: [styles.modalSheet, { backgroundColor: colors.background }],
+    textInput: [styles.textInput, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }],
+    modalTitle: [styles.modalTitle, { color: colors.text }],
+    fieldLabel: [styles.fieldLabel, { color: colors.textMuted }],
+    sheetItemText: [styles.sheetItemText, { color: colors.text }],
+  };
+
   return (
     <Screen padded={false}>
       <AppHeader title="Profile" />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile header card */}
-        <View style={styles.profileCard}>
+        <View style={themedStyles.profileCard}>
           <View style={styles.avatarWrap}>
             {photoUri ? (
               <Image source={{ uri: photoUri }} style={styles.avatarImage} />
@@ -234,15 +252,15 @@ export function ProfileScreen({ navigation }: Props) {
             </Pressable>
           </View>
 
-          <Text style={styles.profileName}>{user?.name ?? 'User'}</Text>
+          <Text style={themedStyles.profileName}>{user?.name ?? 'User'}</Text>
           <View style={styles.badgeRow}>
             <Badge label={roleLabel} variant="primary" />
           </View>
-          <Text style={styles.profileEmail}>{user?.email ?? ''}</Text>
+          <Text style={themedStyles.profileEmail}>{user?.email ?? ''}</Text>
         </View>
 
         {/* Info card */}
-        <View style={styles.card}>
+        <View style={themedStyles.card}>
           <Text style={styles.cardTitle}>Account Information</Text>
           <InfoRow label="Full Name" value={user?.name ?? ''} />
           <InfoRow label="Email Address" value={user?.email ?? ''} />
@@ -251,7 +269,7 @@ export function ProfileScreen({ navigation }: Props) {
         </View>
 
         {/* Actions card */}
-        <View style={styles.card}>
+        <View style={themedStyles.card}>
           <Text style={styles.cardTitle}>Account Actions</Text>
           <MenuItem
             icon="create-outline"
@@ -267,7 +285,7 @@ export function ProfileScreen({ navigation }: Props) {
         </View>
 
         {/* App card */}
-        <View style={styles.card}>
+        <View style={themedStyles.card}>
           <Text style={styles.cardTitle}>Application</Text>
           <MenuItem icon="notifications-outline" label="Notification Center" onPress={handleNotificationCenter} />
           <MenuItem icon="settings-outline" label="App Settings" onPress={() => navigation.navigate('AppSettings')} />
@@ -291,25 +309,25 @@ export function ProfileScreen({ navigation }: Props) {
       {/* Edit Profile Modal */}
       <Modal visible={isEditing} transparent animationType="slide" onRequestClose={() => setIsEditing(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setIsEditing(false)} />
-        <View style={styles.modalSheet}>
+        <View style={themedStyles.modalSheet}>
           <View style={styles.modalHandle} />
-          <Text style={styles.modalTitle}>Edit Profile</Text>
+          <Text style={themedStyles.modalTitle}>Edit Profile</Text>
 
-          <Text style={styles.fieldLabel}>Full Name</Text>
+          <Text style={themedStyles.fieldLabel}>Full Name</Text>
           <TextInput
             value={editName}
             onChangeText={setEditName}
-            style={styles.textInput}
+            style={themedStyles.textInput}
             placeholder="Enter your name"
             placeholderTextColor="#94a3b8"
             autoCorrect={false}
           />
 
-          <Text style={styles.fieldLabel}>Phone (optional)</Text>
+          <Text style={themedStyles.fieldLabel}>Phone (optional)</Text>
           <TextInput
             value={editPhone}
             onChangeText={setEditPhone}
-            style={styles.textInput}
+            style={themedStyles.textInput}
             placeholder="Enter phone number"
             placeholderTextColor="#94a3b8"
             keyboardType="phone-pad"
@@ -323,29 +341,29 @@ export function ProfileScreen({ navigation }: Props) {
       {/* Photo Options Sheet */}
       <Modal visible={isPhotoSheetOpen} transparent animationType="slide" onRequestClose={() => setIsPhotoSheetOpen(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setIsPhotoSheetOpen(false)} />
-        <View style={[styles.modalSheet, { paddingBottom: 8 }]}>
+        <View style={[themedStyles.modalSheet, { paddingBottom: 8 }]}>
           <View style={styles.modalHandle} />
-          <Text style={styles.modalTitle}>Profile Photo</Text>
+          <Text style={themedStyles.modalTitle}>Profile Photo</Text>
 
-          <Pressable style={styles.sheetItem} onPress={takePhoto} accessibilityRole="button">
+          <Pressable style={[styles.sheetItem, { borderTopColor: colors.border }]} onPress={takePhoto} accessibilityRole="button">
             <Ionicons name="camera-outline" size={22} color="#1e88e5" />
-            <Text style={styles.sheetItemText}>Take Photo</Text>
+            <Text style={themedStyles.sheetItemText}>Take Photo</Text>
           </Pressable>
 
-          <Pressable style={styles.sheetItem} onPress={pickPhotoFromGallery} accessibilityRole="button">
+          <Pressable style={[styles.sheetItem, { borderTopColor: colors.border }]} onPress={pickPhotoFromGallery} accessibilityRole="button">
             <Ionicons name="image-outline" size={22} color="#1e88e5" />
-            <Text style={styles.sheetItemText}>Choose from Gallery</Text>
+            <Text style={themedStyles.sheetItemText}>Choose from Gallery</Text>
           </Pressable>
 
           {photoUri ? (
-            <Pressable style={styles.sheetItem} onPress={removePhoto} accessibilityRole="button">
+            <Pressable style={[styles.sheetItem, { borderTopColor: colors.border }]} onPress={removePhoto} accessibilityRole="button">
               <Ionicons name="trash-outline" size={22} color="#ef4444" />
-              <Text style={[styles.sheetItemText, { color: '#ef4444' }]}>Remove Photo</Text>
+              <Text style={[themedStyles.sheetItemText, { color: '#ef4444' }]}>Remove Photo</Text>
             </Pressable>
           ) : null}
 
-          <Pressable style={[styles.sheetItem, { marginTop: 6 }]} onPress={() => setIsPhotoSheetOpen(false)} accessibilityRole="button">
-            <Text style={[styles.sheetItemText, { color: '#64748b', textAlign: 'center', width: '100%' }]}>Cancel</Text>
+          <Pressable style={[styles.sheetItem, { borderTopColor: colors.border, marginTop: 6 }]} onPress={() => setIsPhotoSheetOpen(false)} accessibilityRole="button">
+            <Text style={[themedStyles.sheetItemText, { color: '#64748b', textAlign: 'center', width: '100%' }]}>Cancel</Text>
           </Pressable>
         </View>
       </Modal>

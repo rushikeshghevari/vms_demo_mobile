@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -154,45 +154,50 @@ export function CreateBillScreen({ navigation, route }: Props) {
   return (
     <Screen padded={false}>
       <AppHeader title="Create Bill" leftIcon="arrow-back" onLeftPress={() => navigation.goBack()} />
-      <ScrollView
-        className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
-        contentContainerStyle={{ paddingBottom: 32 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        <DashboardCard className="mb-4">
-          <Text className="text-sm font-semibold text-ink dark:text-slate-200">Purchase Order</Text>
-          <View className="mt-2 flex-row items-center justify-between">
-            <Text className="text-xs text-ink-muted dark:text-slate-400">{linkedPo.poNumber}</Text>
-            <Text className="text-sm font-bold text-primary-600">
-              ₹ {linkedPo.grandTotal.toLocaleString('en-IN')} available
+        <ScrollView
+          className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
+          contentContainerStyle={{ paddingBottom: 32 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <DashboardCard className="mb-4">
+            <Text className="text-sm font-semibold text-ink dark:text-slate-200">Purchase Order</Text>
+            <View className="mt-2 flex-row items-center justify-between">
+              <Text className="text-xs text-ink-muted dark:text-slate-400">{linkedPo.poNumber}</Text>
+              <Text className="text-sm font-bold text-primary-600">
+                ₹ {linkedPo.grandTotal.toLocaleString('en-IN')} available
+              </Text>
+            </View>
+            <Text className="mt-1 text-[11px] text-ink-muted dark:text-slate-500">
+              Your invoice amount cannot exceed this balance.
             </Text>
-          </View>
-          <Text className="mt-1 text-[11px] text-ink-muted dark:text-slate-500">
-            Your invoice amount cannot exceed this balance.
-          </Text>
-        </DashboardCard>
+          </DashboardCard>
 
-        <DashboardCard className="mb-4">
-          <Text className="text-sm font-semibold text-ink dark:text-slate-200">Invoice PDF</Text>
-          <Text className="mt-1 text-xs text-ink-muted dark:text-slate-400">
-            {invoiceFile ? invoiceFile.name : 'No PDF selected yet. PDF only, up to 10 MB.'}
-          </Text>
-          <Button label={invoiceFile ? 'Change Invoice PDF' : 'Select Invoice PDF'} variant="secondary" onPress={handlePickInvoice} className="mt-3" />
-        </DashboardCard>
+          <DashboardCard className="mb-4">
+            <Text className="text-sm font-semibold text-ink dark:text-slate-200">Invoice PDF</Text>
+            <Text className="mt-1 text-xs text-ink-muted dark:text-slate-400">
+              {invoiceFile ? invoiceFile.name : 'No PDF selected yet. PDF only, up to 10 MB.'}
+            </Text>
+            <Button label={invoiceFile ? 'Change Invoice PDF' : 'Select Invoice PDF'} variant="secondary" onPress={handlePickInvoice} className="mt-3" />
+          </DashboardCard>
 
-        <BillForm
-          quotationCode={quotation.quotationCode}
-          vendorName={`${quotation.vendorName} (${quotation.vendorCode})`}
-          departmentName={quotation.departmentName}
-          primaryLabel="Save as Draft"
-          secondaryLabel="Submit to Accounts"
-          isPrimarySubmitting={isSavingDraft || isUploading}
-          isSecondarySubmitting={isSubmitting || isUploading}
-          onPrimarySubmit={handleSaveDraft}
-          onSecondarySubmit={handleSubmitToAccounts}
-          onCancel={() => navigation.goBack()}
-        />
-      </ScrollView>
+          <BillForm
+            quotationCode={quotation.quotationCode}
+            vendorName={`${quotation.vendorName} (${quotation.vendorCode})`}
+            departmentName={quotation.departmentName}
+            primaryLabel="Save as Draft"
+            secondaryLabel="Submit to Accounts"
+            isPrimarySubmitting={isSavingDraft || isUploading}
+            isSecondarySubmitting={isSubmitting || isUploading}
+            onPrimarySubmit={handleSaveDraft}
+            onSecondarySubmit={handleSubmitToAccounts}
+            onCancel={() => navigation.goBack()}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

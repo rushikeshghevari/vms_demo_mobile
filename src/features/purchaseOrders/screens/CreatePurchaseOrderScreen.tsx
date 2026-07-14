@@ -38,12 +38,20 @@ function computeItemTotal(form: ItemForm): { gstAmount: number; taxAmount: numbe
   return { gstAmount, taxAmount, total };
 }
 
+const TERMS_OPTIONS = [
+  'Net 30 days payment term. Delivery within 2 weeks.',
+  'Net 45 days payment term. Delivery within 3 weeks.',
+  '50% advance payment, 50% payment upon delivery.',
+  'Immediate payment upon invoice delivery.',
+];
+
 export function CreatePurchaseOrderScreen({ navigation, route }: Props) {
   const [selectedQuotationId, setSelectedQuotationId] = useState(route.params?.quotationId ?? '');
   const [items, setItems] = useState<ItemForm[]>([EMPTY_ITEM]);
   const [terms, setTerms] = useState('');
   const [notes, setNotes] = useState('');
   const [showQuotationPicker, setShowQuotationPicker] = useState(false);
+  const [showTermsPicker, setShowTermsPicker] = useState(false);
 
   const { data: quotations = [] } = useGetQuotationsQuery();
   const [createPo, { isLoading }] = useCreatePurchaseOrderMutation();
@@ -223,9 +231,29 @@ export function CreatePurchaseOrderScreen({ navigation, route }: Props) {
           {/* Terms & Notes */}
           <View style={styles.section}>
             <Text style={styles.label}>Terms & Conditions</Text>
-            <TextInput style={[styles.input, styles.multiline]} multiline numberOfLines={3}
-              placeholder="Payment terms, delivery terms..." placeholderTextColor="#9CA3AF"
-              value={terms} onChangeText={setTerms} />
+            <TouchableOpacity
+              style={styles.picker}
+              onPress={() => setShowTermsPicker((v) => !v)}
+            >
+              <Text style={[styles.pickerText, !terms && styles.placeholder]}>
+                {terms || 'Select Terms & Conditions'}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color="#6B7280" />
+            </TouchableOpacity>
+
+            {showTermsPicker && (
+              <View style={styles.dropdownList}>
+                {TERMS_OPTIONS.map((opt) => (
+                  <TouchableOpacity
+                    key={opt}
+                    style={styles.dropdownItem}
+                    onPress={() => { setTerms(opt); setShowTermsPicker(false); }}
+                  >
+                    <Text style={styles.dropdownItemText}>{opt}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
 
             <Text style={styles.label}>Notes</Text>
             <TextInput style={[styles.input, styles.multiline]} multiline numberOfLines={2}

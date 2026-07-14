@@ -14,6 +14,7 @@ import { ScoreGauge, recommendationBandCopy } from '@/components/director/ScoreG
 import { Loader } from '@/components/ui/Loader';
 import { NotificationBell } from '@/components/ui/NotificationBell';
 import { Screen } from '@/components/ui/Screen';
+import { DirectorApprovalHistory } from '@/components/quotations/DirectorApprovalHistory';
 import { env } from '@/config/env';
 import { useDecideFinancialApprovalMutation } from '@/features/bills/api/billsApi';
 import type { DirectorFinancialDecision } from '@/features/bills/types';
@@ -360,6 +361,14 @@ export function BillFinancialApprovalScreen({ navigation, route }: Props) {
           <DashboardCard className="mb-4">
             <SectionTitle icon="alert-circle-outline" title="Differences" />
             <DifferencesPanel bySeverity={differencesBySeverity} />
+          </DashboardCard>
+        ) : null}
+
+        {/* ── Director Approvals Roster ── */}
+        {bill.directorApprovals && bill.directorApprovals.length > 0 ? (
+          <DashboardCard className="mb-4">
+            <SectionTitle icon="people-outline" title="Director Approvals Roster" />
+            <DirectorApprovalHistory approvals={bill.directorApprovals as any} />
           </DashboardCard>
         ) : null}
 

@@ -31,6 +31,7 @@ import {
   resolveDeepLinkTarget,
   getNotificationData,
   DEFAULT_ACTION_IDENTIFIER,
+  resolveInAppTarget,
 } from '@/features/notifications/services/notificationDeepLink';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAuth } from '@/hooks/useAuth';
@@ -192,7 +193,7 @@ function getPlatform(): 'android' | 'ios' | 'web' {
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function usePushNotifications() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const dispatch = useAppDispatch();
   const [registerDevice] = useRegisterDeviceMutation();
   const [removeDevice]   = useRemoveDeviceMutation();
@@ -229,11 +230,29 @@ export function usePushNotifications() {
         return;
       }
 
-      // All other modules: open the Notification Center so the user sees the context before
-      // navigating into the module. The notification list's "View" button handles the final hop.
+      // Try routing directly to Details screen based on module, referenceId, and user's role
+      const mod = data.module;
+      const refId = data.referenceId;
+      const role = user?.role;
+
+      if (mod && refId && role) {
+        const inAppTarget = resolveInAppTarget(mod, refId, role);
+        if (inAppTarget) {
+          (navigation as any).navigate('Main', {
+            screen: inAppTarget.tab,
+            params: {
+              screen: inAppTarget.screen,
+              params: inAppTarget.params,
+            },
+          });
+          return;
+        }
+      }
+
+      // Fallback: open Notification Center
       navigation.navigate('NotificationCenter', { screen: 'NotificationList', params: undefined });
     },
-    [navigation],
+    [navigation, user],
   );
 
   const requestPermissionsAndRegister = useCallback(async () => {

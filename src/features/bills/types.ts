@@ -86,6 +86,13 @@ export interface Bill {
   directorFinancialBy?: string;
   directorFinancialAt?: string;
   directorFinancialRemarks?: string;
+  directorApprovals?: {
+    directorId: string;
+    directorName: string;
+    decision: 'pending' | 'approved' | 'rejected' | 'correction_required';
+    remarks?: string;
+    decidedAt: string | null;
+  }[];
   status: BillStatus;
   createdAt: string;
   updatedAt: string;

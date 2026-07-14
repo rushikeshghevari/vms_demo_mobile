@@ -32,6 +32,7 @@ export const vendorSchema = z.object({
   state: z.string().trim().min(1, 'State is required'),
   district: z.string().trim().min(1, 'District is required'),
   city: z.string().trim().min(1, 'City is required'),
+  taluka: z.string().optional().or(z.literal('')),
   pincode: z.string().trim().regex(PINCODE_REGEX, 'Enter a valid 6-digit pincode'),
   bankName: z.string().trim().min(1, 'Bank name is required'),
   accountHolderName: z.string().trim().min(1, 'Account holder name is required'),

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -8,6 +8,7 @@ import { FilterChipRow } from '@/components/users/FilterChipRow';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Button } from '@/components/ui/Button';
 import { FormTextField } from '@/components/ui/FormTextField';
+import { FormSearchableDropdown } from '@/components/ui/FormSearchableDropdown';
 import { Loader } from '@/components/ui/Loader';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
@@ -29,7 +30,7 @@ const STATUS_OPTIONS = [
 
 export function EditUserScreen({ navigation, route }: Props) {
   const { userId } = route.params;
-  const { data: users, isLoading: isLoadingUser } = useGetUsersQuery();
+  const { data: users, isLoading: isLoadingUser, refetch } = useGetUsersQuery();
   const { data: departments } = useGetDepartmentsQuery();
   const [updateUser, { isLoading: isSaving }] = useUpdateUserMutation();
 
@@ -81,6 +82,7 @@ export function EditUserScreen({ navigation, route }: Props) {
           isActive: values.status === 'active',
         },
       }).unwrap();
+      refetch();
       navigation.goBack();
     } catch (error) {
       Alert.alert('Could Not Update User', getErrorMessage(error));
@@ -91,53 +93,50 @@ export function EditUserScreen({ navigation, route }: Props) {
     <Screen padded={false}>
       <AppHeader title="Edit User" leftIcon="arrow-back" onLeftPress={() => navigation.goBack()} />
 
-      <ScrollView
-        className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
-        contentContainerStyle={{ paddingBottom: 32 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        <TextField label="Email" value={user.email} editable={false} className="bg-slate-100 text-ink-muted dark:bg-slate-800" />
+        <ScrollView
+          className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
+          contentContainerStyle={{ paddingBottom: 32 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <TextField label="Email" value={user.email} editable={false} className="bg-slate-100 text-ink-muted dark:bg-slate-800" />
 
-        <FormTextField control={control} name="name" label="Full Name" placeholder="Enter full name" autoCapitalize="words" />
-        <FormTextField control={control} name="phone" label="Mobile" placeholder="Enter mobile number" keyboardType="phone-pad" />
+          <FormTextField control={control} name="name" label="Full Name" placeholder="Enter full name" autoCapitalize="words" />
+          <FormTextField control={control} name="phone" label="Mobile" placeholder="Enter mobile number" keyboardType="phone-pad" />
 
-        <Controller
-          control={control}
-          name="role"
-          render={({ field: { value, onChange }, fieldState: { error } }) => (
-            <ChipSelect label="Role" value={value} options={ROLE_OPTIONS} onChange={onChange} errorMessage={error?.message} />
-          )}
-        />
-
-        {roleValue === ROLES.DEPARTMENT_USER ? (
           <Controller
             control={control}
-            name="departmentId"
+            name="role"
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <View className="mb-4">
-                <Text className="mb-1.5 text-sm font-medium text-ink dark:text-slate-200">Department</Text>
-                <FilterChipRow
-                  value={value ?? ''}
-                  options={activeDepartments.map((department) => ({ value: department.id, label: department.name }))}
-                  onChange={onChange}
-                />
-                {error ? <Text className="mt-1 text-sm text-red-600 dark:text-red-400">{error.message}</Text> : null}
-              </View>
+              <ChipSelect label="Role" value={value} options={ROLE_OPTIONS} onChange={onChange} errorMessage={error?.message} />
             )}
           />
-        ) : null}
 
-        <Controller
-          control={control}
-          name="status"
-          render={({ field: { value, onChange }, fieldState: { error } }) => (
-            <ChipSelect label="Status" value={value} options={STATUS_OPTIONS} onChange={onChange} errorMessage={error?.message} />
-          )}
-        />
+          {roleValue === ROLES.DEPARTMENT_USER ? (
+            <FormSearchableDropdown
+              control={control}
+              name="departmentId"
+              label="Department"
+              placeholder="Select Department"
+              options={activeDepartments.map((department) => ({ value: department.id, label: department.name }))}
+            />
+          ) : null}
 
-        <Button label="Save Changes" loading={isSaving} onPress={handleSubmit(onSubmit)} className="mt-2" />
-        <Button label="Cancel" variant="secondary" onPress={() => navigation.goBack()} className="mt-3" />
-      </ScrollView>
+          <Controller
+            control={control}
+            name="status"
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
+              <ChipSelect label="Status" value={value} options={STATUS_OPTIONS} onChange={onChange} errorMessage={error?.message} />
+            )}
+          />
+
+          <Button label="Save Changes" loading={isSaving} onPress={handleSubmit(onSubmit)} className="mt-2" />
+          <Button label="Cancel" variant="secondary" onPress={() => navigation.goBack()} className="mt-3" />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

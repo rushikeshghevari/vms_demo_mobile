@@ -1,4 +1,4 @@
-import { Alert, ScrollView, Text } from 'react-native';
+import { Alert, ScrollView, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -67,25 +67,30 @@ export function AddVendorScreen({ navigation, route }: Props) {
   return (
     <Screen padded={false}>
       <AppHeader title="Add Vendor" leftIcon="arrow-back" onLeftPress={() => navigation.goBack()} />
-      <ScrollView
-        className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
-        contentContainerStyle={{ paddingBottom: 32 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        {!department ? (
-          <Text className="mb-3 text-sm text-red-600 dark:text-red-400">
-            Your account has no department assigned — contact your Super Admin before registering a vendor.
-          </Text>
-        ) : null}
+        <ScrollView
+          className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
+          contentContainerStyle={{ paddingBottom: 48 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {!department ? (
+            <Text className="mb-3 text-sm text-red-600 dark:text-red-400">
+              Your account has no department assigned — contact your Super Admin before registering a vendor.
+            </Text>
+          ) : null}
 
-        <VendorForm
-          departmentName={department?.name ?? 'No department'}
-          submitLabel="Register Vendor"
-          isSubmitting={isLoading}
-          onSubmit={handleSubmit}
-          onCancel={() => navigation.goBack()}
-        />
-      </ScrollView>
+          <VendorForm
+            departmentName={department?.name ?? 'No department'}
+            submitLabel="Register Vendor"
+            isSubmitting={isLoading}
+            onSubmit={handleSubmit}
+            onCancel={() => navigation.goBack()}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

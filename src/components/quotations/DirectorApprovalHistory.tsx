@@ -9,24 +9,27 @@ interface DirectorApprovalHistoryProps {
   approvals: DirectorApproval[];
 }
 
-const DECISION_LABEL: Record<DirectorApprovalStatus, string> = {
+const DECISION_LABEL: Record<string, string> = {
   pending: 'Pending',
   approved: 'Approved',
   negotiation: 'Negotiation',
+  correction_required: 'Correction Required',
   rejected: 'Rejected',
 };
 
-const DECISION_VARIANT: Record<DirectorApprovalStatus, 'primary' | 'success' | 'danger' | 'neutral'> = {
+const DECISION_VARIANT: Record<string, 'primary' | 'success' | 'danger' | 'neutral'> = {
   pending: 'neutral',
   approved: 'success',
   negotiation: 'primary',
+  correction_required: 'danger',
   rejected: 'danger',
 };
 
-const DECISION_ICON: Record<DirectorApprovalStatus, keyof typeof Ionicons.glyphMap> = {
+const DECISION_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   pending: 'hourglass-outline',
   approved: 'checkmark-circle',
   negotiation: 'swap-horizontal',
+  correction_required: 'pencil-outline',
   rejected: 'close-circle',
 };
 
@@ -58,12 +61,15 @@ export function DirectorApprovalHistory({ approvals }: DirectorApprovalHistoryPr
           <View className="flex-1">
             <View className="flex-row items-center justify-between">
               <Text className="text-sm font-semibold text-ink dark:text-white">{approval.directorName}</Text>
-              <Badge label={DECISION_LABEL[approval.decision]} variant={DECISION_VARIANT[approval.decision]} />
+              <Badge
+                label={DECISION_LABEL[approval.decision] || 'Pending'}
+                variant={DECISION_VARIANT[approval.decision] || 'neutral'}
+              />
             </View>
 
             <View className="mt-1 flex-row items-center gap-1.5">
               <Ionicons
-                name={DECISION_ICON[approval.decision]}
+                name={DECISION_ICON[approval.decision] || 'hourglass-outline'}
                 size={13}
                 color={approval.decision === 'pending' ? '#94a3b8' : '#5f5f5f'}
               />

@@ -5,9 +5,18 @@ import { Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { FormDateField } from '@/components/ui/FormDateField';
 import { FormTextField } from '@/components/ui/FormTextField';
+import { FormSearchableDropdown } from '@/components/ui/FormSearchableDropdown';
 import { TextField } from '@/components/ui/TextField';
 import { billSchema, type BillFormValues } from '@/features/bills/billSchema';
 import { toIsoDateString } from '@/utils/date';
+
+const PAYMENT_TERMS_OPTIONS = [
+  { value: 'Net 30', label: 'Net 30' },
+  { value: 'Net 45', label: 'Net 45' },
+  { value: 'Net 60', label: 'Net 60' },
+  { value: 'Immediate Payment', label: 'Immediate Payment' },
+  { value: '50% Advance / 50% Delivery', label: '50% Advance / 50% Delivery' },
+];
 
 interface BillFormProps {
   billCode?: string;
@@ -38,7 +47,7 @@ export function BillForm({
   onSecondarySubmit,
   onCancel,
 }: BillFormProps) {
-  const { control, handleSubmit } = useForm<BillFormValues>({
+  const { control, handleSubmit, reset } = useForm<BillFormValues>({
     resolver: zodResolver(billSchema),
     // `invoiceAmount`/`taxableAmount`/`gstAmount` are zod-coerced numbers, but TextInput only
     // ever renders a string — seed them as strings here so the default actually shows up.
@@ -55,6 +64,24 @@ export function BillForm({
       ...defaultValues,
     },
   });
+
+  const handlePrimarySubmit = async (values: BillFormValues) => {
+    try {
+      await onPrimarySubmit(values);
+      reset();
+    } catch (error) {
+      // Ignore
+    }
+  };
+
+  const handleSecondarySubmit = async (values: BillFormValues) => {
+    try {
+      await onSecondarySubmit?.(values);
+      reset();
+    } catch (error) {
+      // Ignore
+    }
+  };
 
   return (
     <View>
@@ -75,7 +102,13 @@ export function BillForm({
       <FormTextField control={control} name="invoiceAmount" label="Invoice Amount" placeholder="e.g. 59000" keyboardType="numeric" />
       <FormTextField control={control} name="taxableAmount" label="Taxable Amount" placeholder="e.g. 50000" keyboardType="numeric" />
       <FormTextField control={control} name="gstAmount" label="GST Amount" placeholder="e.g. 9000" keyboardType="numeric" />
-      <FormTextField control={control} name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
+      <FormSearchableDropdown
+        control={control}
+        name="paymentTerms"
+        label="Payment Terms"
+        placeholder="Select Payment Terms"
+        options={PAYMENT_TERMS_OPTIONS}
+      />
       <FormDateField control={control} name="dueDate" label="Due Date" />
       <FormTextField
         control={control}
@@ -87,13 +120,13 @@ export function BillForm({
         className="h-16"
       />
 
-      <Button label={primaryLabel} loading={isPrimarySubmitting} onPress={handleSubmit(onPrimarySubmit)} className="mt-2" />
+      <Button label={primaryLabel} loading={isPrimarySubmitting} onPress={handleSubmit(handlePrimarySubmit)} className="mt-2" />
       {secondaryLabel && onSecondarySubmit ? (
         <Button
           label={secondaryLabel}
           variant="secondary"
           loading={isSecondarySubmitting}
-          onPress={handleSubmit(onSecondarySubmit)}
+          onPress={handleSubmit(handleSecondarySubmit)}
           className="mt-3"
         />
       ) : null}

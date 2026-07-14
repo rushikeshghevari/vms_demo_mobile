@@ -13,6 +13,7 @@ import { DashboardCard } from '@/components/dashboard/DashboardCard';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Loader } from '@/components/ui/Loader';
 import { Screen } from '@/components/ui/Screen';
+import { DirectorApprovalHistory } from '@/components/quotations/DirectorApprovalHistory';
 import { ROLES } from '@/constants/roles';
 import { env } from '@/config/env';
 import {
@@ -222,39 +223,13 @@ export function BillDetailsScreen({ navigation, route }: Props) {
           </Pressable>
         ) : null}
 
-        {/* Director Financial Decision badge (read-only, after decision) */}
-        {(isDirector || isSuperAdmin) && bill.directorFinancialDecision ? (
+        {/* Director Financial Decisions (Roster) */}
+        {bill.directorApprovals && bill.directorApprovals.length > 0 ? (
           <DashboardCard className="mb-4">
-            <Text className="text-xs font-semibold uppercase tracking-wider text-ink-muted dark:text-slate-400">
-              Financial Approval Decision
+            <Text className="mb-3 text-sm font-semibold text-ink dark:text-slate-200">
+              Director Approvals Roster
             </Text>
-            <View className="mt-2 flex-row items-center gap-2">
-              <Ionicons
-                name={
-                  bill.directorFinancialDecision === 'approved'
-                    ? 'checkmark-circle'
-                    : bill.directorFinancialDecision === 'rejected'
-                      ? 'close-circle'
-                      : 'pencil-outline'
-                }
-                size={18}
-                color={
-                  bill.directorFinancialDecision === 'approved'
-                    ? '#059669'
-                    : bill.directorFinancialDecision === 'rejected'
-                      ? '#DC2626'
-                      : '#D97706'
-                }
-              />
-              <Text className="text-sm font-semibold capitalize text-ink dark:text-slate-200">
-                {bill.directorFinancialDecision.replace('_', ' ')}
-              </Text>
-            </View>
-            {bill.directorFinancialRemarks ? (
-              <Text className="mt-1.5 text-xs text-ink-muted dark:text-slate-400">
-                Remarks: {bill.directorFinancialRemarks}
-              </Text>
-            ) : null}
+            <DirectorApprovalHistory approvals={bill.directorApprovals as any} />
           </DashboardCard>
         ) : null}
 

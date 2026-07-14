@@ -1,4 +1,5 @@
 import { Image, type ImageStyle, type StyleProp } from 'react-native';
+import { useTheme } from '@/providers/ThemeProvider';
 
 export type BrandLogoSize = 'sm' | 'md' | 'lg';
 
@@ -22,13 +23,16 @@ const SIZE_STYLES: Record<BrandLogoSize, { width: number; height: number }> = {
  * no code changes are needed anywhere else when you do.
  */
 export function BrandLogo({ size = 'md', style }: BrandLogoProps) {
+  const { scheme } = useTheme();
+  const tintColorStyle = scheme === 'dark' ? { tintColor: '#ffffff' as const } : null;
+
   return (
     <Image
       source={require('../../../assets/images/logo.png')}
       accessibilityRole="image"
       accessibilityLabel="Genericart Medicine Store logo"
       resizeMode="contain"
-      style={[SIZE_STYLES[size], style]}
+      style={[SIZE_STYLES[size], tintColorStyle, style]}
     />
   );
 }

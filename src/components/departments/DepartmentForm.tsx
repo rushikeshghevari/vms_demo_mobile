@@ -45,7 +45,7 @@ export function DepartmentForm({
   onSubmit,
   onCancel,
 }: DepartmentFormProps) {
-  const { control, handleSubmit, watch, setValue } = useForm<DepartmentFormValues>({
+  const { control, handleSubmit, watch, setValue, reset } = useForm<DepartmentFormValues>({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
       name: '',
@@ -72,6 +72,15 @@ export function DepartmentForm({
 
   // Edit mode: the existing code is left untouched unless the user explicitly regenerates it.
   const handleRegenerate = () => setValue('code', generateDepartmentCode(nameValue ?? '', existingCodes));
+
+  const handleFormSubmit = async (values: DepartmentFormValues) => {
+    try {
+      await onSubmit(values);
+      reset();
+    } catch (error) {
+      // Ignore
+    }
+  };
 
   return (
     <View>
@@ -181,7 +190,7 @@ export function DepartmentForm({
         )}
       />
 
-      <Button label={submitLabel} loading={isSubmitting} onPress={handleSubmit(onSubmit)} className="mt-2" />
+      <Button label={submitLabel} loading={isSubmitting} onPress={handleSubmit(handleFormSubmit)} className="mt-2" />
       <Button label="Cancel" variant="secondary" onPress={onCancel} className="mt-3" />
     </View>
   );

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Alert, ScrollView } from 'react-native';
+import { Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { DepartmentForm } from '@/components/departments/DepartmentForm';
@@ -40,20 +40,25 @@ export function AddDepartmentScreen({ navigation }: Props) {
   return (
     <Screen padded={false}>
       <AppHeader title="Add Department" leftIcon="arrow-back" onLeftPress={() => navigation.goBack()} />
-      <ScrollView
-        className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
-        contentContainerStyle={{ paddingBottom: 32 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        <DepartmentForm
-          mode="add"
-          existingCodes={existingCodes}
-          submitLabel="Save Department"
-          isSubmitting={isLoading}
-          onSubmit={handleSubmit}
-          onCancel={() => navigation.goBack()}
-        />
-      </ScrollView>
+        <ScrollView
+          className="flex-1 bg-surface-muted px-4 pt-4 dark:bg-surface-dark"
+          contentContainerStyle={{ paddingBottom: 48 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <DepartmentForm
+            mode="add"
+            existingCodes={existingCodes}
+            submitLabel="Save Department"
+            isSubmitting={isLoading}
+            onSubmit={handleSubmit}
+            onCancel={() => navigation.goBack()}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
