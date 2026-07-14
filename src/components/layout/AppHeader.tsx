@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { useNavigation, useRoute, DrawerActions } from '@react-navigation/native';
 
 import { BrandLogo } from '@/components/branding/BrandLogo';
 import { useTheme } from '@/providers/ThemeProvider';
+import { useDrawer } from '@/navigation/context/DrawerContext';
 
 interface AppHeaderProps {
   /** `solid` is the primary-blue bar used by Profile/ComingSoon. `brand` is the light, logo-centered bar used by the Dashboard. */
@@ -26,18 +27,45 @@ export function AppHeader({
   rightSlot,
 }: AppHeaderProps) {
   const navigation = useNavigation();
+  const route = useRoute();
+  const drawer = useDrawer();
   const { scheme } = useTheme();
 
-  const canGoBack = navigation ? navigation.canGoBack() : false;
-  const hasDrawer = navigation ? typeof (navigation as any).openDrawer === 'function' : false;
+  const currentRouteName = route.name;
 
-  const defaultIcon = canGoBack ? 'arrow-back' : (hasDrawer ? 'menu' : undefined);
-  const defaultPress = canGoBack 
-    ? () => navigation.goBack() 
-    : (hasDrawer ? () => navigation.dispatch(DrawerActions.toggleDrawer()) : undefined);
+  const ROOT_ROUTE_NAMES = new Set([
+    'Dashboard',
+    'UserList',
+    'DepartmentList',
+    'VendorList',
+    'QuotationList',
+    'BillList',
+    'AccountsBillList',
+    'PurchaseOrderList',
+    'PaymentList',
+    'ProfileHome',
+    'Reports',
+  ]);
+
+  const isRootRoute = ROOT_ROUTE_NAMES.has(currentRouteName);
+  const canGoBack = navigation.canGoBack();
+  const hasDrawer = !!drawer;
+
+  const defaultIcon = (hasDrawer && isRootRoute)
+    ? 'menu'
+    : (canGoBack ? 'arrow-back' : undefined);
+
+  const defaultPress = (hasDrawer && isRootRoute)
+    ? () => drawer?.openDrawer()
+    : (canGoBack ? () => navigation.goBack() : undefined);
 
   const resolvedIcon = leftIcon ?? defaultIcon;
-  const resolvedPress = onLeftPress ?? defaultPress;
+  const isMenuIcon = resolvedIcon === 'menu' || resolvedIcon === 'menu-outline';
+  const resolvedPress = onLeftPress ?? (
+    isMenuIcon
+      ? () => drawer?.openDrawer()
+      : defaultPress
+  );
 
   if (variant === 'brand') {
     return (
