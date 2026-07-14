@@ -27,11 +27,16 @@ function SwipeAction({ icon, label, color, onPress }: { icon: keyof typeof Ionic
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      className="w-20 items-center justify-center"
-      style={{ backgroundColor: color }}
+      style={{
+        backgroundColor: color,
+        width: 80,
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
     >
       <Ionicons name={icon} size={20} color="#fff" />
-      <Text className="mt-1 text-[10px] font-semibold text-white">{label}</Text>
+      <Text style={{ marginTop: 4, fontSize: 10, fontWeight: '600', color: '#fff' }}>{label}</Text>
     </Pressable>
   );
 }
@@ -54,28 +59,38 @@ function NotificationCardBase({
 
   const close = () => swipeableRef.current?.close();
 
-  const renderLeftActions = (progress: Animated.AnimatedInterpolation<number>) => {
-    const translateX = progress.interpolate({ inputRange: [0, 1], outputRange: [-40, 0] });
+  const renderLeftActions = () => {
     return (
-      <Animated.View style={{ flexDirection: 'row', transform: [{ translateX }] }}>
+      <View style={{ width: 160, flexDirection: 'row', height: '100%' }}>
         <SwipeAction icon="checkmark-done-outline" label="Read" color="#16A34A" onPress={() => { onMarkRead(n.id); close(); }} />
         <SwipeAction icon="trash-outline" label="Delete" color="#DC2626" onPress={() => { onDelete(n.id); close(); }} />
-      </Animated.View>
+      </View>
     );
   };
 
-  const renderRightActions = (progress: Animated.AnimatedInterpolation<number>) => {
-    const translateX = progress.interpolate({ inputRange: [0, 1], outputRange: [40, 0] });
+  const renderRightActions = () => {
     return (
-      <Animated.View style={{ flexDirection: 'row', transform: [{ translateX }] }}>
+      <View style={{ width: 160, flexDirection: 'row', height: '100%' }}>
         <SwipeAction icon="open-outline" label="Open" color="#2563EB" onPress={() => { onOpen(n); close(); }} />
         <SwipeAction icon={n.isPinned ? 'bookmark' : 'bookmark-outline'} label={n.isPinned ? 'Unpin' : 'Pin'} color="#D97706" onPress={() => { onTogglePin(n); close(); }} />
-      </Animated.View>
+      </View>
     );
   };
 
   return (
-    <Swipeable ref={swipeableRef} renderLeftActions={renderLeftActions} renderRightActions={renderRightActions} overshootLeft={false} overshootRight={false}>
+    <Swipeable
+      ref={swipeableRef}
+      renderLeftActions={renderLeftActions}
+      renderRightActions={renderRightActions}
+      overshootLeft={false}
+      overshootRight={false}
+      containerStyle={{
+        marginHorizontal: 16,
+        marginVertical: 6,
+        borderRadius: 16,
+        overflow: 'hidden',
+      }}
+    >
       <Pressable
         onPress={() => onPress(n)}
         onLongPress={() => onLongPress?.(n)}
@@ -90,7 +105,7 @@ function NotificationCardBase({
           shadowRadius: 3,
           elevation: 1,
         })}
-        className={`mx-4 my-1.5 flex-row gap-3 rounded-2xl border p-3.5 shadow-sm ${
+        className={`flex-row gap-3 border p-3.5 shadow-sm ${
           selected
             ? 'border-primary-400 bg-primary-50 dark:border-primary-500 dark:bg-primary-900/30'
             : isUnread

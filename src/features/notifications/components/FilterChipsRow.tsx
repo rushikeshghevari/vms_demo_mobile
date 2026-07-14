@@ -46,7 +46,8 @@ export function FilterChipsRow({ active, onChange }: Props) {
       horizontal
       showsHorizontalScrollIndicator={false}
       className="mb-2"
-      contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
+      style={{ flexGrow: 0, maxHeight: 44 }}
+      contentContainerStyle={{ paddingHorizontal: 16, gap: 8, alignItems: 'center' }}
     >
       {QUICK_FILTERS.map((chip) => {
         const isActive = active === chip.id;

@@ -1,7 +1,7 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Badge } from '@/components/ui/Badge';
+import { Badge, AnimatedPressable } from '@/components/ui';
 import type { Vendor, VendorStatus } from '@/features/vendors/types';
 
 interface VendorCardProps {
@@ -23,13 +23,12 @@ const STATUS_VARIANT: Record<VendorStatus, 'success' | 'neutral' | 'danger'> = {
 
 export function VendorCard({ vendor, onPress }: VendorCardProps) {
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityLabel={vendor.name}
       onPress={() => onPress?.(vendor)}
-      android_ripple={{ color: '#e2e8f0' }}
-      style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.98 : 1 }] })}
-      className="mb-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm shadow-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none"
+      android_ripple={{ color: '#f1f5f9' }}
+      className="mb-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm shadow-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none"
     >
       <View className="flex-row items-start justify-between">
         <View className="flex-1 pr-2">
@@ -64,6 +63,6 @@ export function VendorCard({ vendor, onPress }: VendorCardProps) {
           </View>
         ) : null}
       </View>
-    </Pressable>
+    </AnimatedPressable>
   );
 }

@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
+import { ActivityIndicator, Text, type PressableProps } from 'react-native';
+import { AnimatedPressable } from './AnimatedPressable';
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'dangerOutline' | 'ghost';
 
@@ -10,17 +11,17 @@ interface ButtonProps extends Omit<PressableProps, 'children'> {
 }
 
 const variantStyles: Record<ButtonVariant, { container: string; text: string }> = {
-  primary: { container: 'bg-primary-600 active:bg-primary-700', text: 'text-white' },
+  primary: { container: 'bg-primary-600 dark:bg-primary-500 shadow-sm shadow-primary-500/20', text: 'text-white' },
   secondary: {
-    container: 'bg-slate-100 active:bg-slate-200 dark:bg-slate-800',
+    container: 'bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50',
     text: 'text-slate-900 dark:text-white',
   },
-  danger: { container: 'bg-red-600 active:bg-red-700', text: 'text-white' },
+  danger: { container: 'bg-red-600 dark:bg-red-500 shadow-sm shadow-red-500/20', text: 'text-white' },
   dangerOutline: {
-    container: 'border border-red-300 bg-transparent active:bg-red-50 dark:border-red-800 dark:active:bg-red-950',
+    container: 'border border-red-200 bg-transparent dark:border-red-900/60',
     text: 'text-red-600 dark:text-red-400',
   },
-  ghost: { container: 'bg-transparent', text: 'text-primary-600' },
+  ghost: { container: 'bg-transparent', text: 'text-primary-600 dark:text-primary-400' },
 };
 
 export function Button({
@@ -34,18 +35,25 @@ export function Button({
   const isDisabled = disabled || loading;
   const styles = variantStyles[variant];
 
+  // Helper to determine loader color based on button variant
+  const getLoaderColor = () => {
+    if (variant === 'primary' || variant === 'danger') return '#ffffff';
+    if (variant === 'dangerOutline') return '#dc2626';
+    return '#1e88e5';
+  };
+
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       disabled={isDisabled}
-      className={`flex-row items-center justify-center rounded-xl px-4 py-3 ${styles.container} ${
+      className={`flex-row items-center justify-center rounded-2xl px-4 py-3.5 ${styles.container} ${
         isDisabled ? 'opacity-50' : ''
       } ${className}`}
       {...pressableProps}
     >
-      {loading && <ActivityIndicator size="small" className="mr-2" />}
+      {loading && <ActivityIndicator size="small" className="mr-2" color={getLoaderColor()} />}
       <Text className={`text-base font-semibold ${styles.text}`}>{label}</Text>
-    </Pressable>
+    </AnimatedPressable>
   );
 }

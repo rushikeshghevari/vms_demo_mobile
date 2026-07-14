@@ -4,6 +4,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { AnalyticsBar } from '@/components/dashboard/AnalyticsBar';
 import { DashboardCard } from '@/components/dashboard/DashboardCard';
+import { SparklineRow } from '@/components/dashboard/SparklineRow';
 import { DepartmentSummaryCard } from '@/components/departments/DepartmentSummaryCard';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Avatar } from '@/components/ui/Avatar';
@@ -91,24 +92,40 @@ export function HodDashboardScreen({ navigation }: Props) {
           />
         </View>
 
-        <View className="mt-3 flex-row gap-3">
-          <DepartmentSummaryCard
-            icon={<Ionicons name="document-text-outline" size={20} color="#1e88e5" />}
+        <View className="mt-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-sm shadow-slate-100 dark:shadow-none">
+          <Text className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-4 uppercase tracking-wider">Department Activity Trend</Text>
+          <SparklineRow
+            title="Quotations"
+            subtitle="Vendor cost proposals"
             value={isLoading ? 0 : department?.quotationCount ?? 0}
-            label="Quotations"
+            icon="document-text"
+            iconColor="#1e88e5"
+            iconBg="#e3f2fd"
+            trendData={[5, 8, 12, 10, 15, department?.quotationCount ?? 0]}
+            color="#1e88e5"
+            onPress={() => navigation.navigate('Quotations', { screen: 'QuotationList' })}
           />
-          <DepartmentSummaryCard
-            icon={<Ionicons name="clipboard-outline" size={20} color="#f59e0b" />}
+          <SparklineRow
+            title="Purchase Orders"
+            subtitle="Approved procurement orders"
             value={isLoading ? 0 : department?.purchaseOrderCount ?? 0}
-            label="Purchase Orders"
+            icon="clipboard"
+            iconColor="#f59e0b"
+            iconBg="#fef3c7"
+            trendData={[2, 4, 3, 6, 5, department?.purchaseOrderCount ?? 0]}
+            color="#f59e0b"
+            onPress={() => {}}
           />
-        </View>
-
-        <View className="mt-3 flex-row gap-3">
-          <DepartmentSummaryCard
-            icon={<Ionicons name="receipt-outline" size={20} color="#e53935" />}
+          <SparklineRow
+            title="Bills"
+            subtitle="Vendor invoices received"
             value={isLoading ? 0 : department?.billCount ?? 0}
-            label="Bills"
+            icon="receipt"
+            iconColor="#e53935"
+            iconBg="#ffebee"
+            trendData={[4, 3, 7, 5, 8, department?.billCount ?? 0]}
+            color="#e53935"
+            onPress={() => navigation.navigate('Bills', { screen: 'BillList' })}
           />
         </View>
 

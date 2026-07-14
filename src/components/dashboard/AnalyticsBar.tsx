@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 interface AnalyticsBarProps {
   label: string;
@@ -7,27 +9,31 @@ interface AnalyticsBarProps {
   color: string;
 }
 
-/** Percentage-fill bar row used across dashboard/department analytics sections. */
+/** Percentage-fill bar row with loading animations. */
 export function AnalyticsBar({ label, value, max, color }: AnalyticsBarProps) {
   const pct = max > 0 ? Math.min(value / max, 1) : 0;
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withTiming(pct, { duration: 800 });
+  }, [pct, progress]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: `${Math.round(progress.value * 100)}%` as `${number}%`,
+  }));
+
   return (
-    <View style={styles.row}>
-      <View style={styles.labelRow}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={[styles.count, { color }]}>{value}</Text>
+    <View className="mb-3">
+      <View className="flex-row justify-between mb-1.5">
+        <Text className="text-xs font-semibold text-slate-600 dark:text-slate-400">{label}</Text>
+        <Text style={{ color }} className="text-xs font-bold">{value}</Text>
       </View>
-      <View style={styles.barBg}>
-        <View style={[styles.barFill, { width: `${Math.round(pct * 100)}%` as `${number}%`, backgroundColor: color }]} />
+      <View className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <Animated.View
+          style={[{ backgroundColor: color }, animatedStyle]}
+          className="h-2 rounded-full"
+        />
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row:      { marginBottom: 4 },
-  labelRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
-  label:    { fontSize: 12, color: '#475569', fontWeight: '500' },
-  count:    { fontSize: 12, fontWeight: '700' },
-  barBg:    { height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' },
-  barFill:  { height: 6, borderRadius: 3 },
-});

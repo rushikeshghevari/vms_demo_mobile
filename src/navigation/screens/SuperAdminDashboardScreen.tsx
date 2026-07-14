@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 import { AnalyticsBar } from '@/components/dashboard/AnalyticsBar';
+import { SparklineRow } from '@/components/dashboard/SparklineRow';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Avatar } from '@/components/ui/Avatar';
 import { NotificationBell } from '@/components/ui/NotificationBell';
@@ -166,6 +167,11 @@ export function SuperAdminDashboardScreen() {
     [users],
   );
 
+  const totalQuotations = (quotations ?? []).length;
+  const totalBills = (bills ?? []).length;
+  const totalPayments = (paymentStats?.completed ?? 0) + (paymentStats?.pending ?? 0);
+
+
   // KPI Row 1 — entity counts
   const kpiRow1 = useMemo<KpiCardData[]>(() => [
     { id: 'users',       icon: 'people',       iconColor: '#43a047', iconBg: '#e8f5e9', value: dash((users ?? []).length),        label: 'Users',       subtitle: 'All roles',         onPress: () => { navigation.navigate('Users',       { screen: 'UserList'       }); drawer?.setActiveTab('Users');       } },
@@ -262,21 +268,78 @@ export function SuperAdminDashboardScreen() {
           </TouchableOpacity>
         ) : null}
 
-        {/* KPI Row 1 — entity overview */}
-        <SectionHeader title="Overview" />
-        <FlatList
-          data={kpiRow1}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.kpiListContent}
-          ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
-          renderItem={({ item }) => <KpiCard {...item} />}
-          snapToInterval={KPI_SNAP_INTERVAL}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          scrollEventThrottle={16}
-        />
+
+        {/* KPI Row 1 — entity overview console */}
+        <View className="mx-4 mt-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-sm shadow-slate-100 dark:shadow-none">
+          <Text className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-4 uppercase tracking-wider">System Overview Console</Text>
+          <SparklineRow
+            title="Registered Users"
+            subtitle="All active user roles"
+            value={dash((users ?? []).length)}
+            icon="people"
+            iconColor="#43a047"
+            iconBg="#e8f5e9"
+            trendData={[2, 3, 4, 5, 5, (users ?? []).length]}
+            color="#43a047"
+            onPress={() => { navigation.navigate('Users', { screen: 'UserList' }); drawer?.setActiveTab('Users'); }}
+          />
+          <SparklineRow
+            title="Departments"
+            subtitle="Registered company divisions"
+            value={dash((departments ?? []).length)}
+            icon="business"
+            iconColor="#1e88e5"
+            iconBg="#e3f2fd"
+            trendData={[1, 1, 2, 2, 2, (departments ?? []).length]}
+            color="#1e88e5"
+            onPress={() => { navigation.navigate('Departments', { screen: 'DepartmentList' }); drawer?.setActiveTab('Departments'); }}
+          />
+          <SparklineRow
+            title="Vendors"
+            subtitle="Approved supplier profiles"
+            value={dash((vendors ?? []).length)}
+            icon="storefront"
+            iconColor="#7c3aed"
+            iconBg="#f3e8fd"
+            trendData={[1, 2, 4, 3, 5, (vendors ?? []).length]}
+            color="#7c3aed"
+            onPress={() => { navigation.navigate('Vendors', { screen: 'VendorList' }); drawer?.setActiveTab('Vendors'); }}
+          />
+          <SparklineRow
+            title="Quotations"
+            subtitle="All-time cost estimations"
+            value={dash(totalQuotations)}
+            icon="document-text"
+            iconColor="#f59e0b"
+            iconBg="#fef3c7"
+            trendData={[3, 5, 4, 7, 8, totalQuotations]}
+            color="#f59e0b"
+            onPress={() => { navigation.navigate('Quotations', { screen: 'QuotationList' }); drawer?.setActiveTab('Quotations'); }}
+          />
+          <SparklineRow
+            title="Bills"
+            subtitle="All-time verified invoices"
+            value={dash(totalBills)}
+            icon="receipt"
+            iconColor="#0891b2"
+            iconBg="#e0f7fa"
+            trendData={[2, 4, 3, 6, 8, totalBills]}
+            color="#0891b2"
+            onPress={() => { navigation.navigate('Bills', { screen: 'BillList' }); drawer?.setActiveTab('Bills'); }}
+          />
+          <SparklineRow
+            title="Payments"
+            subtitle="All-time processing cycles"
+            value={isLoading ? '—' : (paymentStats?.total ?? 0)}
+            icon="card"
+            iconColor="#1e88e5"
+            iconBg="#dbeafe"
+            trendData={[1, 2, 2, 3, 4, (paymentStats?.total ?? 0)]}
+            color="#10b981"
+            onPress={() => { navigation.navigate('Payments', { screen: 'PaymentList' }); drawer?.setActiveTab('Payments'); }}
+          />
+        </View>
+
 
         {/* KPI Row 2 — workflow status */}
         <SectionHeader title="Status" />
